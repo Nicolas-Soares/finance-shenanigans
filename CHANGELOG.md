@@ -8,6 +8,16 @@ O formato baseia-se nas convenções de [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [1.3.1] - 2026-10-22
+
+### Corrigido
+- **Correção da Linha Verde ('Total em Juros') no Gráfico SVG**:
+  - Corrigida a propriedade `juros` no ponto inicial (Mês 0). Anteriormente o ponto continha apenas `jurosAcum: 0` enquanto o gerador de caminhos SVG acessava `p.juros`, resultando em `NaN` na coordenada inicial (`M 70.0 NaN`), o que invalidava o path SVG e impedia a renderização da linha pelo navegador.
+  - Adicionado fallback defensivo `(p.juros || 0)` tanto na renderização das curvas quanto no cálculo das coordenadas do cursor flutuante (`atualizarTooltip`).
+  - Aumentada a espessura da linha verde para `2.5px` em frontend/styles.css para máxima nitidez visual.
+
+---
+
 ## [1.3.0] - 2026-10-22
 
 ### Adicionado

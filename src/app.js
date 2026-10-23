@@ -449,9 +449,9 @@
 
     chartPontosAtuais.forEach((p, idx) => {
       const x = coordX(p.mes).toFixed(1);
-      const yAcum = coordY(p.acumulado).toFixed(1);
-      const yAport = coordY(p.investido).toFixed(1);
-      const yJur = coordY(p.juros).toFixed(1);
+      const yAcum = coordY(p.acumulado || 0).toFixed(1);
+      const yAport = coordY(p.investido || 0).toFixed(1);
+      const yJur = coordY(p.juros || 0).toFixed(1);
 
       const cmd = idx === 0 ? 'M' : 'L';
       dAcumulado += `${cmd} ${x} ${yAcum} `;
@@ -509,9 +509,9 @@
     const maxValRaw = Math.max(...chartPontosAtuais.map((p) => p.acumulado), 100);
     const maxVal = niceMax(maxValRaw);
 
-    const curYAcum = padTop + chartH - (ponto.acumulado / maxVal) * chartH;
-    const curYAport = padTop + chartH - (ponto.investido / maxVal) * chartH;
-    const curYJur = padTop + chartH - (ponto.juros / maxVal) * chartH;
+    const curYAcum = padTop + chartH - ((ponto.acumulado || 0) / maxVal) * chartH;
+    const curYAport = padTop + chartH - ((ponto.investido || 0) / maxVal) * chartH;
+    const curYJur = padTop + chartH - ((ponto.juros || 0) / maxVal) * chartH;
 
     hoverLine.setAttribute('x1', curX);
     hoverLine.setAttribute('x2', curX);
@@ -604,12 +604,20 @@
 
     if (linhas.length > 0) {
       chartPontosCompletos = [
-        { mes: 0, jurosMes: 0, investido: valorInicial, jurosAcum: 0, acumulado: valorInicial },
+        {
+          mes: 0,
+          jurosMes: 0,
+          investido: valorInicial,
+          juros: 0,
+          jurosAcum: 0,
+          acumulado: valorInicial,
+        },
         ...linhas.map((l) => ({
           mes: l.mes,
           jurosMes: l.jurosMes,
           investido: l.investido,
           juros: l.jurosAcum,
+          jurosAcum: l.jurosAcum,
           acumulado: l.acumulado,
         })),
       ];
