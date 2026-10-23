@@ -31,7 +31,12 @@ Este projeto é um **conjunto de utilitários financeiros para investidores**, p
 ### 2.3. Atualização Contínua do `CHANGELOG.md`
 > 📝 **SEMPRE que houver uma nova feature ou alteração grande/importante, adicione um registro detalhado no arquivo `CHANGELOG.md`.**
 - O `CHANGELOG.md` serve como a memória viva do projeto para que agentes subsequentes saibam o que já foi criado, o que foi modificado e como a aplicação evoluiu.
-- Registre data, versão/título, descrição sucinta e arquivos impactados.
+- Registre data, versão/título, descrição sucinta e arquivos impactados (usando **apenas** caminhos relativos ao projeto).
+
+### 2.4. Privacidade, Segurança e Higiene de Caminhos (Zero Dados Pessoais)
+> 🔒 **REGRA INVIOLÁVEL:** **NENHUM caminho de arquivo local (file path absoluto como `C:\Users\...` ou URLs `file:///`), nome de usuário do sistema ou dado pessoal do desenvolvedor deve ser incluído no `CHANGELOG.md` ou em qualquer outro arquivo do projeto.**
+- **Caminhos de arquivo:** Ao referenciar arquivos no `CHANGELOG.md` ou na documentação, utilize **estritamente caminhos relativos à raiz do projeto** (ex.: `frontend/styles.css` ou `src/app.js`), sem esquemas de URL `file:///` e sem referências à estrutura de pastas do computador local.
+- **Dados sensíveis:** Nunca versione caminhos contendo nomes de usuários do SO, tokens, segredos ou referências à máquina pessoal do usuário.
 
 ---
 
@@ -97,3 +102,4 @@ O projeto é construído intencionalmente de forma ágil, leve e performática c
 3. [ ] A UI mantém o padrão de design existente e as cores oficiais Uniswap Dark?
 4. [ ] O código é semântico, limpo e não quebrou nenhuma funcionalidade prévia?
 5. [ ] Foi adicionado um registro descritivo no `CHANGELOG.md` caso a mudança seja relevante ou uma nova feature?
+6. [ ] Garanti que nenhum caminho absoluto local (ex.: `C:\Users\...`, `file:///...`) ou dado pessoal do desenvolvedor foi inserido no `CHANGELOG.md` ou nos arquivos do projeto?
