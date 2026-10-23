@@ -64,6 +64,8 @@ Toda a aplicação utiliza e **deve continuar utilizando** a paleta oficial insp
 | `--error` | `#ff593c` | Mensagens e estados de erro |
 | `--profit` | `#2cd182` | **Uniswap / DeFi Green** (ganho de capital / juros) |
 | `--profit-glow` | `rgba(44, 209, 130, 0.35)` | Efeitos de sombra/brilho no lucro/juros |
+| `--chart-blue` | `#4c82fb` | **Uniswap / DeFi Blue** (total acumulado no gráfico de evolução) |
+| `--chart-blue-glow` | `rgba(76, 130, 251, 0.35)` | Efeitos de sombra/brilho no total acumulado |
 | `--text-1` | `#ffffff` | Texto primário de alto contraste |
 | `--text-2` | `#9b9b9b` | Rótulos, legendas e textos secundários |
 | `--text-3` | `#5e5e5e` | Textos terciários, placeholders e desabilitados |

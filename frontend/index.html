@@ -217,7 +217,8 @@
             id="tab-evolucao"
             class="tab"
             aria-selected="false"
-            disabled
+            aria-controls="panel-evolucao"
+            tabindex="-1"
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 3v18h18" />
@@ -307,6 +308,103 @@
                   Seu dinheiro multiplicou 0.0 vezes
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="panel evolucao-panel"
+          id="panel-evolucao"
+          role="tabpanel"
+          aria-labelledby="tab-evolucao"
+          hidden
+        >
+          <div class="panel-header-row">
+            <div>
+              <h2 class="section-title">Evolução do Patrimônio</h2>
+              <p class="hint">
+                Visualização do crescimento do patrimônio ao longo do período selecionado.
+              </p>
+            </div>
+            <div class="period-filters" role="group" aria-label="Filtros de período do gráfico">
+              <button type="button" class="filter-btn" data-period="ytd">YTD</button>
+              <button type="button" class="filter-btn" data-period="6m">6 meses</button>
+              <button type="button" class="filter-btn" data-period="1y">1 ano</button>
+              <button type="button" class="filter-btn" data-period="5y">5 anos</button>
+              <button type="button" class="filter-btn is-active" data-period="all">Tudo</button>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-legend">
+              <span class="chart-legend-item">
+                <span class="chart-dot dot-acumulado" aria-hidden="true"></span>
+                Total Acumulado
+              </span>
+              <span class="chart-legend-item">
+                <span class="chart-dot dot-aportado" aria-hidden="true"></span>
+                Total Aportado
+              </span>
+              <span class="chart-legend-item">
+                <span class="chart-dot dot-juros" aria-hidden="true"></span>
+                Total em Juros
+              </span>
+            </div>
+
+            <div class="chart-container" id="chart-container">
+              <svg
+                class="chart-svg"
+                id="chart-svg"
+                viewBox="0 0 800 360"
+                preserveAspectRatio="none"
+                role="img"
+                aria-label="Gráfico de evolução do patrimônio"
+              >
+                <!-- Linhas de grade e rótulos do eixo Y -->
+                <g id="chart-y-axis"></g>
+                <!-- Linhas das séries -->
+                <path id="path-aportado" class="chart-line line-aportado" />
+                <path id="path-juros" class="chart-line line-juros" />
+                <path id="path-acumulado" class="chart-line line-acumulado" />
+                <!-- Rótulos do eixo X -->
+                <g id="chart-x-axis"></g>
+                <!-- Indicador de hover interativo -->
+                <g id="chart-hover-indicator" class="chart-hover-indicator" hidden>
+                  <line id="hover-line" class="hover-line" y1="20" y2="290" />
+                  <circle id="hover-dot-acumulado" class="hover-dot hover-dot-acumulado" r="5" />
+                  <circle id="hover-dot-aportado" class="hover-dot hover-dot-aportado" r="5" />
+                  <circle id="hover-dot-juros" class="hover-dot hover-dot-juros" r="5" />
+                </g>
+              </svg>
+
+              <div id="chart-empty" class="chart-empty">
+                <p>Preencha os dados e clique em Calcular</p>
+              </div>
+
+              <!-- Menu flutuante (tooltip escuro translúcido) -->
+              <div id="chart-tooltip" class="chart-tooltip" hidden>
+                <div class="tooltip-header" id="tooltip-title">1 ano</div>
+                <div class="tooltip-row">
+                  <span class="chart-dot dot-acumulado" aria-hidden="true"></span>
+                  <span class="tooltip-label">Total Acumulado:</span>
+                  <strong class="tooltip-value" id="tooltip-acumulado">R$ 0,00</strong>
+                </div>
+                <div class="tooltip-row">
+                  <span class="chart-dot dot-aportado" aria-hidden="true"></span>
+                  <span class="tooltip-label">Total Aportado:</span>
+                  <strong class="tooltip-value" id="tooltip-aportado">R$ 0,00</strong>
+                </div>
+                <div class="tooltip-row">
+                  <span class="chart-dot dot-juros" aria-hidden="true"></span>
+                  <span class="tooltip-label">Total em Juros:</span>
+                  <strong class="tooltip-value" id="tooltip-juros">R$ 0,00</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-footer">
+              <span class="chart-footer-left" id="chart-footer-left">Visualização mensal • 0 meses analisados</span>
+              <span class="chart-footer-right">Evolução dos investimentos</span>
             </div>
           </div>
         </section>

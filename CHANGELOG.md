@@ -8,6 +8,29 @@ O formato baseia-se nas convenções de [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [1.3.0] - 2026-10-22
+
+### Adicionado
+- **Aba 'Evolução do Patrimônio' com Gráfico Interativo SVG**:
+  - Habilitada a navegação e seleção da aba **Evolução** com WAI-ARIA e suporte a teclado.
+  - Painel com o mesmo dimensionamento, bordas e espaçamentos da aba **Composição**.
+  - **Filtros de Período**:
+    - Botões acima do gráfico: `YTD` (Year to date), `6 meses`, `1 ano`, `5 anos` e `Tudo`.
+    - Desativação inteligente de filtros para períodos superiores ao simulado.
+  - **Gráfico de Séries Temporais (3 Linhas e Legenda Clara)**:
+    - Rótulos da legenda ajustados para alto contraste em branco (`--text-1`).
+    - **Total Acumulado**: linha e marcador em azul Uniswap/DeFi (`--chart-blue: #4c82fb`) com efeito glow.
+    - **Total Aportado**: linha e marcador em branco/neutro (`--neutral-seg: #e3e3e3`).
+    - **Total em Juros**: linha e marcador em verde claro (`--profit: #2cd182`) com efeito glow.
+  - **Menu Flutuante Interativo (Tooltip)**:
+    - Card escuro translúcido com blur (`backdrop-filter: blur(14px)`), sombra refinada e borda suave.
+    - Indicador de mira vertical (crosshair) e pontos destacados nas 3 curvas ao passar o mouse.
+    - Exibição de cabeçalho temporal (ex.: "1 ano", "6 meses") e valores exatos em R$ de Total Acumulado, Total Aportado e Total em Juros.
+  - **Rodapé do Gráfico**:
+    - Informativo dinâmico de meses analisados e identificador de evolução.
+
+---
+
 ## [1.2.0] - 2026-10-22
 
 ### Modificado

@@ -246,6 +246,330 @@
     if (btn) irParaPagina(Number(btn.dataset.page));
   });
 
+  /* ---------- Gráfico de Evolução ---------- */
+  const chartSvg = $('chart-svg');
+  const chartContainer = $('chart-container');
+  const chartEmpty = $('chart-empty');
+  const chartYAxis = $('chart-y-axis');
+  const chartXAxis = $('chart-x-axis');
+  const pathAportado = $('path-aportado');
+  const pathJuros = $('path-juros');
+  const pathAcumulado = $('path-acumulado');
+  const chartHoverIndicator = $('chart-hover-indicator');
+  const hoverLine = $('hover-line');
+  const hoverDotAcumulado = $('hover-dot-acumulado');
+  const hoverDotAportado = $('hover-dot-aportado');
+  const hoverDotJuros = $('hover-dot-juros');
+  const chartTooltip = $('chart-tooltip');
+  const tooltipTitle = $('tooltip-title');
+  const tooltipAcumulado = $('tooltip-acumulado');
+  const tooltipAportado = $('tooltip-aportado');
+  const tooltipJuros = $('tooltip-juros');
+  const chartFooterLeft = $('chart-footer-left');
+  const filterButtons = [...document.querySelectorAll('.filter-btn')];
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const createSvgEl = (tag, attrs = {}) => {
+    const el = document.createElementNS(svgNS, tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      el.setAttribute(k, String(v));
+    }
+    return el;
+  };
+
+  let chartPontosCompletos = [];
+  let chartPontosAtuais = [];
+  let filtroPeriodoAtual = 'all';
+
+  function niceMax(val) {
+    if (val <= 0) return 1000;
+    const exp = Math.floor(Math.log10(val));
+    const base = Math.pow(10, exp);
+    const frac = val / base;
+    let mult = 1;
+    if (frac <= 1.2) mult = 1.2;
+    else if (frac <= 1.5) mult = 1.5;
+    else if (frac <= 2) mult = 2;
+    else if (frac <= 2.5) mult = 2.5;
+    else if (frac <= 3) mult = 3;
+    else if (frac <= 4) mult = 4;
+    else if (frac <= 5) mult = 5;
+    else if (frac <= 6) mult = 6;
+    else if (frac <= 8) mult = 8;
+    else mult = 10;
+    return mult * base;
+  }
+
+  function renderGrafico() {
+    chartYAxis.replaceChildren();
+    chartXAxis.replaceChildren();
+    chartHoverIndicator.hidden = true;
+    chartTooltip.hidden = true;
+
+    if (!chartPontosCompletos.length || chartPontosCompletos.length <= 1) {
+      chartEmpty.hidden = false;
+      pathAcumulado.setAttribute('d', '');
+      pathAportado.setAttribute('d', '');
+      pathJuros.setAttribute('d', '');
+      chartFooterLeft.textContent = 'Visualização mensal • 0 meses analisados';
+      filterButtons.forEach((btn) => (btn.disabled = true));
+      return;
+    }
+
+    chartEmpty.hidden = true;
+    const totalMesesSimulados = chartPontosCompletos.length - 1;
+
+    // Atualiza estado de habilitação dos botões de filtro
+    const mesesYTD = Math.min(totalMesesSimulados, new Date().getMonth() + 1);
+    const limitesFiltros = {
+      'ytd': mesesYTD,
+      '6m': 6,
+      '1y': 12,
+      '5y': 60,
+      'all': totalMesesSimulados,
+    };
+
+    filterButtons.forEach((btn) => {
+      const p = btn.dataset.period;
+      if (p === 'all') {
+        btn.disabled = false;
+      } else if (p === 'ytd') {
+        btn.disabled = totalMesesSimulados < 1;
+      } else {
+        btn.disabled = totalMesesSimulados < limitesFiltros[p];
+      }
+    });
+
+    const botaoAtivo = filterButtons.find((b) => b.dataset.period === filtroPeriodoAtual);
+    if (!botaoAtivo || botaoAtivo.disabled) {
+      filtroPeriodoAtual = 'all';
+      filterButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.period === 'all'));
+    }
+
+    let limite = totalMesesSimulados;
+    if (filtroPeriodoAtual === '6m') limite = Math.min(totalMesesSimulados, 6);
+    else if (filtroPeriodoAtual === 'ytd') limite = Math.min(totalMesesSimulados, mesesYTD);
+    else if (filtroPeriodoAtual === '1y') limite = Math.min(totalMesesSimulados, 12);
+    else if (filtroPeriodoAtual === '5y') limite = Math.min(totalMesesSimulados, 60);
+
+    chartPontosAtuais = chartPontosCompletos.slice(0, limite + 1);
+    const nMeses = chartPontosAtuais.length - 1;
+
+    chartFooterLeft.textContent = `Visualização mensal • ${nMeses} ${nMeses === 1 ? 'mês analisado' : 'meses analisados'}`;
+
+    const padLeft = 70;
+    const padRight = 24;
+    const padTop = 24;
+    const padBottom = 48;
+    const chartW = 800 - padLeft - padRight;
+    const chartH = 360 - padTop - padBottom;
+
+    const maxValRaw = Math.max(...chartPontosAtuais.map((p) => p.acumulado), 100);
+    const maxVal = niceMax(maxValRaw);
+
+    // Eixo Y: 5 linhas horizontais
+    const passosY = 4;
+    for (let s = 0; s <= passosY; s++) {
+      const val = (maxVal / passosY) * s;
+      const y = padTop + chartH - (val / maxVal) * chartH;
+
+      chartYAxis.append(
+        createSvgEl('line', {
+          x1: padLeft,
+          y1: y,
+          x2: 800 - padRight,
+          y2: y,
+          stroke: 'rgba(255, 255, 255, 0.10)',
+          'stroke-dasharray': '4 4',
+          'stroke-width': 1,
+        })
+      );
+
+      const textY = createSvgEl('text', {
+        x: padLeft - 10,
+        y: y + 4,
+        'text-anchor': 'end',
+        fill: 'var(--text-2)',
+        'font-size': '11',
+        'font-family': 'var(--font)',
+      });
+      textY.textContent = val === 0 ? 'R$ 0,00' : `R$ ${abrev(val)}`;
+      chartYAxis.append(textY);
+    }
+
+    // Eixo X: marcas de meses
+    const marcas = [0];
+    if (nMeses > 0) {
+      let passoMes = 1;
+      if (nMeses <= 6) passoMes = 1;
+      else if (nMeses <= 12) passoMes = 3;
+      else if (nMeses <= 24) passoMes = 6;
+      else if (nMeses <= 60) passoMes = 12;
+      else if (nMeses <= 120) passoMes = 24;
+      else passoMes = Math.ceil(nMeses / 5 / 12) * 12;
+
+      for (let m = passoMes; m < nMeses; m += passoMes) {
+        marcas.push(m);
+      }
+      if (!marcas.includes(nMeses)) marcas.push(nMeses);
+    }
+
+    marcas.forEach((m) => {
+      const x = padLeft + (m / (nMeses || 1)) * chartW;
+      const textX = createSvgEl('text', {
+        x,
+        y: padTop + chartH + 20,
+        'text-anchor': 'middle',
+        fill: 'var(--text-2)',
+        'font-size': '11',
+        'font-family': 'var(--font)',
+      });
+      textX.textContent = String(m);
+      chartXAxis.append(textX);
+    });
+
+    const labelMeses = createSvgEl('text', {
+      x: padLeft + chartW / 2,
+      y: 350,
+      'text-anchor': 'middle',
+      fill: 'var(--text-3)',
+      'font-size': '11',
+      'font-family': 'var(--font)',
+    });
+    labelMeses.textContent = 'Meses';
+    chartXAxis.append(labelMeses);
+
+    // Linhas das 3 séries
+    const coordX = (m) => padLeft + (m / (nMeses || 1)) * chartW;
+    const coordY = (v) => padTop + chartH - (v / maxVal) * chartH;
+
+    let dAcumulado = '';
+    let dAportado = '';
+    let dJuros = '';
+
+    chartPontosAtuais.forEach((p, idx) => {
+      const x = coordX(p.mes).toFixed(1);
+      const yAcum = coordY(p.acumulado).toFixed(1);
+      const yAport = coordY(p.investido).toFixed(1);
+      const yJur = coordY(p.juros).toFixed(1);
+
+      const cmd = idx === 0 ? 'M' : 'L';
+      dAcumulado += `${cmd} ${x} ${yAcum} `;
+      dAportado += `${cmd} ${x} ${yAport} `;
+      dJuros += `${cmd} ${x} ${yJur} `;
+    });
+
+    pathAcumulado.setAttribute('d', dAcumulado.trim());
+    pathAportado.setAttribute('d', dAportado.trim());
+    pathJuros.setAttribute('d', dJuros.trim());
+  }
+
+  function aplicarFiltro(periodoId) {
+    filtroPeriodoAtual = periodoId;
+    filterButtons.forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.period === periodoId);
+    });
+    renderGrafico();
+  }
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!btn.disabled) aplicarFiltro(btn.dataset.period);
+    });
+  });
+
+  function atualizarTooltip(e) {
+    if (!chartPontosAtuais.length || chartPontosAtuais.length <= 1) return;
+
+    const rect = chartSvg.getBoundingClientRect();
+    const clientX = e.clientX - rect.left;
+    const scaleX = 800 / rect.width;
+    const svgX = clientX * scaleX;
+
+    const padLeft = 70;
+    const padRight = 24;
+    const padTop = 24;
+    const padBottom = 48;
+    const chartW = 800 - padLeft - padRight;
+    const chartH = 360 - padTop - padBottom;
+    const nMeses = chartPontosAtuais.length - 1;
+
+    if (svgX < padLeft - 10 || svgX > 800 - padRight + 10) {
+      chartHoverIndicator.hidden = true;
+      chartTooltip.hidden = true;
+      return;
+    }
+
+    const relX = Math.max(0, Math.min(chartW, svgX - padLeft));
+    const targetIdx = Math.round((relX / chartW) * nMeses);
+    const ponto = chartPontosAtuais[targetIdx];
+    if (!ponto) return;
+
+    const curX = padLeft + (ponto.mes / nMeses) * chartW;
+    const maxValRaw = Math.max(...chartPontosAtuais.map((p) => p.acumulado), 100);
+    const maxVal = niceMax(maxValRaw);
+
+    const curYAcum = padTop + chartH - (ponto.acumulado / maxVal) * chartH;
+    const curYAport = padTop + chartH - (ponto.investido / maxVal) * chartH;
+    const curYJur = padTop + chartH - (ponto.juros / maxVal) * chartH;
+
+    hoverLine.setAttribute('x1', curX);
+    hoverLine.setAttribute('x2', curX);
+    hoverLine.setAttribute('y1', padTop);
+    hoverLine.setAttribute('y2', padTop + chartH);
+
+    hoverDotAcumulado.setAttribute('cx', curX);
+    hoverDotAcumulado.setAttribute('cy', curYAcum);
+
+    hoverDotAportado.setAttribute('cx', curX);
+    hoverDotAportado.setAttribute('cy', curYAport);
+
+    hoverDotJuros.setAttribute('cx', curX);
+    hoverDotJuros.setAttribute('cy', curYJur);
+
+    chartHoverIndicator.hidden = false;
+
+    let titulo = '';
+    if (ponto.mes === 0) {
+      titulo = 'Início (Mês 0)';
+    } else if (ponto.mes % 12 === 0) {
+      titulo = `${ponto.mes / 12} ${ponto.mes === 12 ? 'ano' : 'anos'}`;
+    } else if (ponto.mes < 12) {
+      titulo = `${ponto.mes} ${ponto.mes === 1 ? 'mês' : 'meses'}`;
+    } else {
+      titulo = `${Math.floor(ponto.mes / 12)}a ${ponto.mes % 12}m (${ponto.mes} meses)`;
+    }
+
+    tooltipTitle.textContent = titulo;
+    tooltipAcumulado.textContent = fmtBRL(ponto.acumulado);
+    tooltipAportado.textContent = fmtBRL(ponto.investido);
+    tooltipJuros.textContent = fmtBRL(ponto.juros);
+
+    const pctX = (curX / 800) * 100;
+    const pctY = (curYAcum / 360) * 100;
+
+    chartTooltip.style.left = `${pctX}%`;
+    chartTooltip.style.top = `${Math.max(12, pctY)}%`;
+
+    if (pctX > 75) {
+      chartTooltip.style.transform = 'translate(-98%, -35%)';
+    } else if (pctX < 25) {
+      chartTooltip.style.transform = 'translate(-2%, -35%)';
+    } else {
+      chartTooltip.style.transform = 'translate(-50%, -115%)';
+    }
+
+    chartTooltip.hidden = false;
+  }
+
+  function esconderTooltip() {
+    chartHoverIndicator.hidden = true;
+    chartTooltip.hidden = true;
+  }
+
+  chartContainer.addEventListener('pointermove', atualizarTooltip);
+  chartContainer.addEventListener('pointerleave', esconderTooltip);
+
   /* ---------- Abas ---------- */
   const tabs = [...document.querySelectorAll('.tabs [role="tab"]')];
 
@@ -273,10 +597,29 @@
     ativarAba(prox);
   });
 
-  function render({ montante, investido, juros, linhas = [] }) {
+  function render({ montante, investido, juros, linhas = [], valorInicial = 0 }) {
     linhasTabela = linhas;
     paginaAtual = 1;
     renderTabela();
+
+    if (linhas.length > 0) {
+      chartPontosCompletos = [
+        { mes: 0, jurosMes: 0, investido: valorInicial, jurosAcum: 0, acumulado: valorInicial },
+        ...linhas.map((l) => ({
+          mes: l.mes,
+          jurosMes: l.jurosMes,
+          investido: l.investido,
+          juros: l.jurosAcum,
+          acumulado: l.acumulado,
+        })),
+      ];
+    } else {
+      chartPontosCompletos = [];
+    }
+
+    filtroPeriodoAtual = 'all';
+    filterButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.period === 'all'));
+    renderGrafico();
     const pctInvestido = montante > 0 ? (investido / montante) * 100 : 0;
     const pctJuros = montante > 0 ? (juros / montante) * 100 : 0;
     const fator = investido > 0 ? montante / investido : 0;
@@ -330,24 +673,27 @@
     }
 
     formError.textContent = '';
-    render(calcular({
+    render({
+      ...calcular({
+        valorInicial,
+        aporte,
+        taxaPct,
+        taxaTipo: selTaxaTipo.value,
+        periodo,
+        periodoTipo: selPeriodoTipo.value,
+      }),
       valorInicial,
-      aporte,
-      taxaPct,
-      taxaTipo: selTaxaTipo.value,
-      periodo,
-      periodoTipo: selPeriodoTipo.value,
-    }));
+    });
   });
 
   btnLimpar.addEventListener('click', () => {
     form.reset();
     [inValorInicial, inAporte, inTaxa, inPeriodo].forEach(clearError);
     formError.textContent = '';
-    render({ montante: 0, investido: 0, juros: 0 });
+    render({ montante: 0, investido: 0, juros: 0, linhas: [], valorInicial: 0 });
     inValorInicial.focus();
   });
 
   // Estado inicial: campos vazios e resultados zerados
-  render({ montante: 0, investido: 0, juros: 0 });
+  render({ montante: 0, investido: 0, juros: 0, linhas: [], valorInicial: 0 });
 })();
