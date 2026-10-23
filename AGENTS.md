@@ -38,6 +38,12 @@ Este projeto é um **conjunto de utilitários financeiros para investidores**, p
 - **Caminhos de arquivo:** Ao referenciar arquivos no `CHANGELOG.md` ou na documentação, utilize **estritamente caminhos relativos à raiz do projeto** (ex.: `frontend/styles.css` ou `src/app.js`), sem esquemas de URL `file:///` e sem referências à estrutura de pastas do computador local.
 - **Dados sensíveis:** Nunca versione caminhos contendo nomes de usuários do SO, tokens, segredos ou referências à máquina pessoal do usuário.
 
+### 2.5. Autonomia e Controle do Git (Proibido Commitar ou Dar Push Sem Autorização Explícita)
+> 🛑 **REGRA INVIOLÁVEL:** **O AGENTE DE IA NUNCA DEVE EXECUTAR `git commit`, `git push` OU QUALQUER AÇÃO DE GRAVAÇÃO/ENVIO NO GIT POR CONTA PRÓPRIA, A NÃO SER QUE O USUÁRIO DEIXE CLARO E AUTORIZE EXPRESSAMENTE A EXECUÇÃO DESSES COMANDOS.**
+- **Foco nos arquivos:** O agente deve limitar-se a criar, alterar e testar o código no diretório de trabalho.
+- **Sugestão de comandos:** O agente deve apresentar os comandos Git recomendados ao usuário para que ele mesmo os execute, ou perguntar antes caso faça sentido automatizar.
+- **Execução condicionada:** Comandos como `git commit`, `git push`, `git rebase` ou `git merge` só podem ser executados caso o usuário tenha dado uma instrução direta e explícita para isso (ex.: "faça o commit", "pode commitar").
+
 ---
 
 ## 3. Diretrizes de Interface (UI/UX) & Design System
@@ -103,3 +109,4 @@ O projeto é construído intencionalmente de forma ágil, leve e performática c
 4. [ ] O código é semântico, limpo e não quebrou nenhuma funcionalidade prévia?
 5. [ ] Foi adicionado um registro descritivo no `CHANGELOG.md` caso a mudança seja relevante ou uma nova feature?
 6. [ ] Garanti que nenhum caminho absoluto local (ex.: `C:\Users\...`, `file:///...`) ou dado pessoal do desenvolvedor foi inserido no `CHANGELOG.md` ou nos arquivos do projeto?
+7. [ ] Não executei `git commit` nem `git push` sem autorização explícita do usuário?
